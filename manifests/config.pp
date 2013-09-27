@@ -33,7 +33,7 @@ class puppet::config (
     owner   => 'root',
     group   => 'root',
     mode    => '0640',
-    content => template("puppet/puppet.conf.erb"),
+    content => template('puppet/puppet.conf.erb'),
     require => Class['puppet::package'],
   }
 
@@ -43,7 +43,7 @@ class puppet::config (
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    content => template("puppet/sysconfig.conf.erb"),
+    content => template('puppet/sysconfig.erb'),
     require => Class['puppet::package'],
   }
 

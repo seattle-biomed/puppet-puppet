@@ -37,7 +37,7 @@ class puppet (
   }
 
   if ( $agent_ensure ) {
-    class { 'puppet::agent':
+    class { 'puppet::agent::service':
       enable    => $agent_enable,
       ensure    => $agent_ensure,
       subscribe => Class['puppet::config']
@@ -45,7 +45,7 @@ class puppet (
   }
 
   if ( $master_ensure ) {
-    class { 'puppet::master':
+    class { 'puppet::master::service':
       enable    => $master_enable,
       ensure    => $master_ensure,
       subscribe => Class['puppet::config']
