@@ -1,181 +1,162 @@
 puppet
 ===
 
-This module sets up puppet agent, master, reports to graphite and
-hiera.
+This module manager puppet agent and/or puppetmaster.
+It is intended for use in an already installed and functioning puppet environment.
 
 This module is most flexible and most easier to manage when used with hiera.
 
 ## Classes
 
 ### puppet
-This class installs puppet package. It should not be called directly.
-It is inherited by `puppet::agent` and `puppet::master` classes.
+This class wraps the individual puppet package, config, and service classes.
 
 #### Parameters
-* `vardir` - Puppet working directory. Default: /var/lib/puppet`.
+* `package_ensure` - What state the package should be in.
+Valid values are `present`, `installed`, `absent`, `purged`, `held`, `latest`.
+Default: `installed`
 
-* `confdir` - Puppet configuration directory. Default: `/etc/puppet`.
+* `agent_ensure` - Whether a service should be running.
+Valid values are `stopped`, `running`.
+Defalut: `running`
 
-* `logdir` - Puppet logs directory. Default: `/var/log/puppet`.
+* `agent_enable` - Whether a service should be enabled to start at boot.
+Valid values are `true`, `false`, `manual`.
+Default: `true`
 
-* `rundir` - Where Puppet PID files are kept. Default: `/var/run/puppet`.
+* `master_ensure` - Whether a service should be running.
+Valid values are `stopped`, `running`.
+Defalut: `undef`
 
-* `ssldir` - Where SSL certificates are kept. Default: ``$vardir/ssl`.
+* `master_enable` - Whether a service should be enabled to start at boot.
+Valid values are `true`, `false`, `manual`.
+Default: `false`
+
+* `config_main_options_hash` - A hash of options for the [main] section of puppet.conf
+Default: empty
+
+* `config_master_options_hash` - A hash of options for the [master] section of puppet.conf
+Default: empty
+
+* `config_agent_options_hash` - A hash of options for the [agent] section of puppet.conf
+Default: empty
+
+* `sysconfig_options_hash` - A hash of options for the defaults/sysconfig daemon configuration.
+Default: empty
+
+*  `config_file_resources` - A hash of options used to create additional configuration files.
+Default: empty
 
 
-### puppet::agent
-This class configures puppet agent itself and the agent service.
+### puppet::package
+This class installs puppet from default repositories.
+If you wish to add the puppetlabs repository do it in the module that manages apt/yum/etc.
 
 #### Parameters
-* `enable` - Whether to start the service on boot. Defaults to `true`.
-Valid values: `true` or `false`.
+* `ensure` - What state the package should be in.
+Valid values are `present`, `installed`, `absent`, `purged`, `held`, `latest`.
+Default: `$puppet::package_ensure`
 
-* `ensure` - Whether to start the service on boot. Defaults to `running`.
-Valid values: `running` or `stopped`.
+* `package_name` - The name of the puppet package to install.
+Default: from `$puppet::params::package_name`
 
-* `master` - Puppet master server hostname. Default: `puppet`.
+### puppet::config
+This class installs puppet configuration files. The files are empty unless the
+*_options_hash variables contain data. (Empty configuration files will cause default
+behavior as defined here: http://docs.puppetlabs.com/references/latest/configuration.html )
 
-* `environment` - Puppet environment. Default: `production`.
+Additional configuration files, such as `hiera.yaml` and `routes.yaml` can be
+included via the `file_resources` parameter.
 
-* `report` - Enables or disables agent reports. Default: `true`.
+#### Parameters
+* `main_options_hash` - A hash of options for the [main] section of puppet.conf
+Default: `$puppet::config_main_options_hash`
 
-* `pluginsync` - Whether plugins should be synced with the central server.
-Default: `true`.
+* `master_options_hash` - A hash of options for the [master] section of puppet.conf
+Default: `$puppet::config_master_options_hash`
 
-* `runinterval` - How often puppet agent runs in seconds. Default: `1800`.
+* `agent_options_hash` - A hash of options for the [agent] section of puppet.conf
+Default: `$puppet::config_agent_options_hash`
 
-#### Examples
+* `sysconfig_options_hash` - A hash of options for the defaults/sysconfig daemon configuration.
+Default: `$puppet::sysconfig_options_hash`
+
+* `config_file` - The fully qualified path to puppet.conf.
+Defalut: from `$puppet::params::config_file`
+
+* `sysconfig_file` - The fully qualified path to the defaults/sysconfig daemon configuration.
+Default: from `$puppet::params::sysconfig_file`
+
+*  `file_resources` - A hash of options used to create additional configuration files.
+This parameter is used with 'create_resources(file,$file_resources)' and is intended
+to manage additional configuration files such as 'hiera.yaml' which are not templates.
+Default: `$puppet::config_file_resources`
+
+### puppet::agent::service
+This class manages the puppet agent service.
+If you want puppet to run via cron then set enable and ensure to false values
+and create a cron script in a module that manages cron jobs.
+
+#### Parameters
+* `enable` - Whether a service should be enabled to start at boot.
+Valid values are `true`, `false`, `manual`.
+Default: `$puppet::agent_enable`
+
+* `ensure` - Whether a service should be running.
+Valid values are `stopped`, `running`.
+Default: `$puppet::agent_ensure`
+
+* `service_name` - The name of the puppet service.
+Default: from `$puppet::params::agent_service_name`
+
+### puppet::master::service
+This class manages the puppetmaster service.
+To run puppet master behind a web server (apache, nginx, etc.) leave the defaults
+alone and create a web service for your web server module.
+
+#### Parameters
+* `enable` - Whether a service should be enabled to start at boot.
+Valid values are `true`, `false`, `manual`.
+Default: `$puppet::master_enable`
+
+* `ensure` - Whether a service should be running.
+Valid values are `stopped`, `running`.
+Default: `$puppet::master_ensure`
+
+* `service_name` - The name of the puppet service.
+Default: from `$puppet::params::master_service_name`
+
+## Example
     ---
     classes:
-      - puppet::agent
-    
-    puppet::agent::enable: 'false'
-    puppet::agent::ensure: 'stopped'
-    puppet::agent::master: 'puppet.example.com'
-    puppet::agent::environment: 'staging'
+      - puppet
 
+    puppet::config_main_options_hash:
+      server:       'puppet.domain.tld'
+      environment:  'production'
+      confdir:      '/etc/puppet'
+      hiera_config: '/etc/puppet/hiera.yaml'
 
-### puppet::master
-This class installs puppet master and puppetdb-terminus packages and
-configures puppet master server. It is tested with Puppet 3.1 or later.
+    puppet::config_master_options_hash:
+      node_terminus:            'exec'
+      external_nodes:           '/etc/puppet/bin/node_role.rb'
+      ssl_client_header:        'SSL_CLIENT_S_DN'
+      ssl_client_verify_header: 'SSL_CLIENT_VERIFY'
 
-#### Parameters
-* `enable` - Whether to start the service on boot. Defaults to `true`.
-Valid values: `true` or `false`.
+    puppet::config_agent_options_hash:
+      pluginsync:   'true'
+      report:       'true'
+      runinterval:  '1800'
+      splay:        'true'
+      splaylimit:   '300'
 
-* `ensure` - Whether to start the service on boot. Defaults to `running`.
-Valid values: `running` or `stopped`.
+    puppet::config_sysconfig_options_hash:
+      START:  'yes'
 
-* `storeconfigs` - Whether to store each client’s configuration, including
-catalogs, facts and related data. Default: `false`.
-
-* `storeconfigs_backend` - Configure the backend terminus used for StoreConfigs.
-Currently this module supports `puppetdb` only as a backend for stored configs.
-Default: `puppetdb`.
-
-* `reports` - The list of reports to generate. All reports are looked for in
-`puppet/reports/name.rb`, and multiple report names should be comma-separated
-(whitespace is okay). Default: `store, puppetdb`.
-
-* `autosign` - Whether to enable autosign. Valid values are `true` and `false`.
-Default: `false`.
-
-* `allow_duplicate_certs` - Whether to allow a new certificate request to overwrite
-an existing certificate. Default: `false`.
-
-* `environments` - A list of environments puppet master supports.
-Default: `development`, `qa`, `staging`, `production`.
-
-* `path_to_env_code` - Where to look for puppet modules data for specific environment.
-The module will not create directories. Default: `/etc/puppet/environments`.
-
-* `path_to_hieradata` - Where to look for hieradata data. Puppet will not create
-hiera data directories, it depends on your hierarchy. Default: `$confdir/hieradata`.
-
-* `hiera_hierarchy` - A list of hiera hierarchy items to use for data searching.
-Use ``${}`` instead of ``%{}`` as the latter will be interpolated by hiera.
-    Default:
-    - 'environments/${environment}/nodes/${fqdn}'
-    - 'environments/${environment}/roles/${noderole}'
-    - 'environments/${environment}/sites/${nodesite}'
-    - 'environments/${environment}/common'
-
-
-* `hiera_backeds` - What hiera backends to use. Default: `yaml`. Available backends:
-`yaml`, `json`, `eyaml` - it depends on `puppet::hiera::eyaml` class to be included for
-your puppet master.
-
-* `puppetdb_server` - PuppetDB server name. This tells puppet master where to find PuppetDB.
-Default: $::fqdn`.
-
-* `puppetdb_port` - PuppetDB port number. This tells puppet master what port to use to connect
-to the PuppetDB server. Default: `8081`.
-
-* `routes_enabled` - Whether to use `routes.yaml` terminus granular configuration.
-Enable it only if puppet master is configured to use PuppetDB. Default: `false`.
-
-#### Examples
-    # Using puppet master w/o a backend to store configs, facts, catalogs
-    ---
-    classes:
-      - puppet::master
-    
-    puppet::master::environments:
-      - 'development'
-      - 'qa'
-    
-    
-    # Using puppet master with PuppetDB as a backend
-    ---
-    classes:
-      - puppet::master
-    
-    puppet::master::environments:
-      - 'development'
-      - 'qa'
-    
-    puppet::master::puppetdb_server: 'puppetdb.example.com'
-    puppet::master::routes_enabled: true
-
-
-### puppet::hiera::eyaml
-This class installs rubygem-hiera-eyaml package, hiera eyaml backend libs and can
-generate private/public key pair for you.
-
-More info can be found at: https://github.com/TomPoulton/hiera-eyaml
-
-#### Requires
-It expects `rubygem-hiera-eyaml` package to be available in apt/yum repositories.
-
-#### Parameters
-* `generate_keys` - Whether to generate OpenSSL keys for encryption/decryption.
-Default: `false`.
-
-
-### puppet::master::reports::graphite
-This class configures puppet report processor for graphite. Make sure
-`puppet::master::reports:` parameter has `graphite` listed as well (see examples).
-
-#### Parameters
-* `endpoint` - Graphite plaintext socket server to send reports to. Default: `undef`.
-It is a required parameter. This class will fail if this parameter is missing.
-
-* `prefix` - Graphite key space prefix.
-Default: `servers.<server-name_example_com>.puppet.reports`.
-
-* `port` - Graphite server port number for plaintext socket protocol. Default: `2003`.
-
-#### Examples
-    ---
-    classes:
-      - puppet::master::reports::graphite
-      - puppet::master
-    
-    puppet::master::reports: 'store, graphite'
-    
-    puppet::master::reports::graphite::endpoint: mygraphite.example.com
+    puppet::config_file_resources:
+      '/etc/puppet/hiera.yaml':
+        source: 'puppet:///files/puppet/hiera.yaml'
 
 ## Authors
-* Vaidas Jablonskis <jablonskis@gmail.com>
+* Atom Powers <atom.powers@seattlebiomed.org>
 
