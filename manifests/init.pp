@@ -25,10 +25,14 @@ class puppet (
   $config_agent_options_hash  = hash([]),
   $sysconfig_options_hash     = hash([]),
   $config_file_resources      = hash([]),
+  $package_resources          = hash([]),
 ) {
 
-  class { 'puppet::package': ensure => $package_ensure }
-  -> class { 'puppet::config':
+  class { 'puppet::package':
+    ensure    => $package_ensure,
+    packages  => $package_resources,
+  } ->
+  class { 'puppet::config':
     main_options_hash       => $config_main_options_hash,
     master_options_hash     => $config_master_options_hash,
     agent_options_hash      => $config_agent_options_hash,

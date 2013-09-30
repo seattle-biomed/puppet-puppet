@@ -44,9 +44,11 @@ Default: empty
 * `sysconfig_options_hash` - A hash of options for the defaults/sysconfig daemon configuration.
 Default: empty
 
-*  `config_file_resources` - A hash of options used to create additional configuration files.
+*  `config_file_resources` - A hash of options used to manage additional configuration files.
 Default: empty
 
+*  `package_resources` - A hash of options used to manage additional packages.
+Default: empty
 
 ### puppet::package
 This class installs puppet from default repositories.
@@ -59,6 +61,11 @@ Default: `$puppet::package_ensure`
 
 * `package_name` - The name of the puppet package to install.
 Default: from `$puppet::params::package_name`
+
+* `packages` - A hash of options used to manage additional packages.
+This parameter is used with 'create_resources(package,$packages)' and is intended
+to manage additional packages such as 'eyaml' and 'librarian-puppet'.
+Default: from `$puppet::package_resources` with 'ensure => installed'
 
 ### puppet::config
 This class installs puppet configuration files. The files are empty unless the
@@ -87,7 +94,7 @@ Defalut: from `$puppet::params::config_file`
 * `sysconfig_file` - The fully qualified path to the defaults/sysconfig daemon configuration.
 Default: from `$puppet::params::sysconfig_file`
 
-*  `file_resources` - A hash of options used to create additional configuration files.
+*  `file_resources` - A hash of options used to manage additional configuration files.
 This parameter is used with 'create_resources(file,$file_resources)' and is intended
 to manage additional configuration files such as 'hiera.yaml' which are not templates.
 Default: `$puppet::config_file_resources`
@@ -130,6 +137,11 @@ Default: from `$puppet::params::master_service_name`
     ---
     classes:
       - puppet
+
+    puppet::package_resources:
+      'librarian-puppet':
+        provider: 'gem'
+        ensure:   'installed'
 
     puppet::config_main_options_hash:
       server:       'puppet.domain.tld'
