@@ -3,15 +3,15 @@
 # Puppet service configuration
 #
 [main]
-<% @main_options_hash.each do |option,value| %><%= option %>='<%= value%>'
+<% @main_options_hash.sort.each do |option,value| %><%= option %>='<%= value%>'
 <% end %>
 
 [agent]
-<% @agent_options_hash.each do |option,value| %><%= option %>='<%= value%>'
+<% @agent_options_hash.sort.each do |option,value| %><%= option %>='<%= value%>'
 <% end %>
 
 [master]
-<% @master_options_hash.each do |option,value| %><%= option %>='<%= value%>'
+<% @master_options_hash.sort.each do |option,value| %><%= option %>='<%= value%>'
 <% end %>
 
 # END
