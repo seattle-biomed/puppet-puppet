@@ -28,11 +28,11 @@ class puppet (
   $package_resources          = hash([]),
 ) {
 
-  class { 'puppet::package':
+  class { '::puppet::package':
     ensure    => $package_ensure,
     packages  => $package_resources,
   } ->
-  class { 'puppet::config':
+  class { '::puppet::config':
     main_options_hash       => $config_main_options_hash,
     master_options_hash     => $config_master_options_hash,
     agent_options_hash      => $config_agent_options_hash,
@@ -41,18 +41,18 @@ class puppet (
   }
 
   if ( $agent_ensure ) {
-    class { 'puppet::agent::service':
-      enable    => $agent_enable,
+    class { '::puppet::agent::service':
       ensure    => $agent_ensure,
-      subscribe => Class['puppet::config']
+      enable    => $agent_enable,
+      subscribe => Class['::puppet::config']
     }
   }
 
   if ( $master_ensure ) {
-    class { 'puppet::master::service':
-      enable    => $master_enable,
+    class { '::puppet::master::service':
       ensure    => $master_ensure,
-      subscribe => Class['puppet::config']
+      enable    => $master_enable,
+      subscribe => Class['::puppet::config']
     }
   }
 }
