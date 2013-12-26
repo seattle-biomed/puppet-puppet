@@ -11,7 +11,7 @@ define puppet::fact (
   $value  = undef,
 ) {
 
-  case $kernel {
+  case $::kernel {
     'Linux': {
       $facts_directory = '/etc/facter/facts.d'
       ensure_resource('file','/etc/facter',{'ensure'=>'directory'})
@@ -21,6 +21,8 @@ define puppet::fact (
   }
 
   file { "${facts_directory}/${name}":
-    mode  => '0555',
+    mode    => '0555',
     content => "#!/bin/sh\necho${name}=${$value}\n",
   }
+
+}
