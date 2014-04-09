@@ -14,10 +14,10 @@ class puppet::params {
 
 ## Package Defaults
   case $::osfamily {
-    RedHat: {
+    'Debian': {
       $package_name = 'puppet'
     }
-    Debian: {
+    'RedHat': {
       $package_name = 'puppet'
     }
     default: {
@@ -29,18 +29,13 @@ class puppet::params {
   $config_file   = '/etc/puppet/puppet.conf'
 
 ## Service Defaults
-  case $::operatingsystem {
-    Ubuntu: {
+  case $::osfamily {
+    'Debian': {
       $agent_service_name   = 'puppet'
       $master_service_name  = 'puppetmaster'
       $sysconfig_file       = '/etc/default/puppet'
     }
-    Fedora: {
-      $agent_service_name   = 'puppetagent'
-      $master_service_name  = 'puppetmaster'
-      $sysconfig_file       = '/etc/sysconfig/puppetagent'
-    }
-    CentOS, RedHat: {
+    'RedHat': {
       $agent_service_name   = 'puppet'
       $master_service_name  = 'puppetmaster'
       $sysconfig_file       = '/etc/sysconfig/puppet'
