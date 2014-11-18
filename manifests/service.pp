@@ -11,21 +11,19 @@
 #
 # Atom Powers <atom.powers@seattlebiomed.org>
 #
-class puppet::agent::service (
-  $enable         = $puppet::agent_enable,
-  $ensure         = $puppet::agent_ensure,
-  $service_name   = $puppet::params::agent_service_name,
+class puppet::service (
+  $enable         = str2bool($puppet::service_enable),
+  $ensure         = $puppet::service_ensure,
+  $service_name   = 'puppet',
 ) inherits puppet::params {
 
   validate_string($ensure,$service_name)
-  validate_bool($enable)
 
-  service { 'puppet':
-    name       => $service_name,
+  service { $service_name:
     ensure     => $ensure,
     enable     => $enable,
-    hasrestart => true,
-    hasstatus  => true,
+#    hasrestart => true,
+#    hasstatus  => true,
     subscribe  => Class['puppet::config'],
   }
 

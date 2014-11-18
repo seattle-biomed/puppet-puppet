@@ -1,7 +1,5 @@
-#
 # This file is managed by puppet class <%= @name %>
-# Puppet daemon startup configuration
-#
-<% @sysconfig_options_hash.sort.each do |option,value| %>
-<%= option %>='<%= value%>'
+
+<% @merged_sysconfig_options.sort.each do |option,value| -%>
+<%= option %>='<%= value %>'
 <% end %>
