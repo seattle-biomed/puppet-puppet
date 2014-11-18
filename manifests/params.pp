@@ -12,39 +12,38 @@
 #
 class puppet::params {
 
-## Package Defaults
-  case $::osfamily {
-    'Debian': {
-      $package_name = 'puppet'
-    }
-    'RedHat': {
-      $package_name = 'puppet'
-    }
-    default: {
-      fail("Module ${module_name} is not supported on ${::operatingsystem}")
-    }
-  }
-
 ## Config Defaults
   $config_file   = '/etc/puppet/puppet.conf'
 
 ## Service Defaults
   case $::osfamily {
     'Debian': {
-      $agent_service_name   = 'puppet'
-      $master_service_name  = 'puppetmaster'
-      $sysconfig_file       = '/etc/default/puppet'
+      $master_service_name    = 'puppetmaster'
+      $sysconfig_file         = '/etc/default/puppet'
+      $server_sysconfig_file  = '/etc/default/puppetserver'
     }
     'RedHat': {
-      $agent_service_name   = 'puppet'
-      $master_service_name  = 'puppetmaster'
-      $sysconfig_file       = '/etc/sysconfig/puppet'
+      $master_service_name    = 'puppetmaster'
+      $sysconfig_file         = '/etc/sysconfig/puppet'
+      $server_sysconfig_file  = '/etc/sysconfig/puppetserver'
     }
     default: {
       fail("Module ${module_name} is not supported on ${::operatingsystem}")
     }
   }
 
+  $default_sysconfig_options = {
+    'START' => 'yes'
+  }
 
+  $default_server_sysconfig_options = {
+    'JAVA_BIN'              => '/usr/bin/java',
+    'JAVA_ARGS'             => '-Xms2g -Xmx2g -XX:MaxPermSize=256m',
+    'USER'                  => 'puppet',
+    'INSTALL_DIR'           => '/usr/share/puppetserver',
+    'CONFIG'                => '/etc/puppetserver/conf.d',
+    'BOOTSTRAP_CONFIG'      => '/etc/puppetserver/bootstrap.cfg',
+    'SERVICE_STOP_RETRIES'  => '60',
+  }
 
 }
