@@ -27,9 +27,9 @@ class puppet::config (
   file { 'puppet_config_file':
     ensure  => 'file',
     path    => $config_file,
-    owner   => 'root',
+    owner   => 'puppet',
     group   => 'root',
-    mode    => '0640',
+    mode    => '0444',
     content => template('puppet/puppet.conf.erb'),
     require => Class['puppet::package'],
   }
