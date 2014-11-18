@@ -14,19 +14,19 @@
 #
 # Atom Powers <atom.powers@seattlebiomed.org>
 #
-class puppet (
-  $package_name       = 'puppet',
+class puppet::server (
+  $package_name       = 'puppetserver',
   $package_ensure     = 'installed',
-  $service_ensure     = 'running',
   $service_enable     = true,
+  $service_ensure     = 'running',
   $config_options     = {},
   $sysconfig_options  = {},
 ) {
 
-  anchor { '::puppet::start': } ->
-  class { '::puppet::package': } ->
-  class { '::puppet::config':  } ~>
-  class { '::puppet::service': } ->
-  anchor { '::puppet::end': }
+  anchor { '::puppet::server::start': } ->
+  class { '::puppet::server::package': } ->
+  class { '::puppet::server::config': } ~>
+  class { '::puppet::server::service': } ->
+  anchor { '::puppet::server::end': }
 
 }

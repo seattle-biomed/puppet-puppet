@@ -10,14 +10,14 @@
 #
 # Atom Powers <atom.powers@seattlebiomed.org>
 #
-class puppet::package (
-  $ensure       = $puppet::package_ensure,
-  $package_name = $puppet::package_name,
+class puppet::server::package (
+  $ensure       = $puppet::server::package_ensure,
+  $package_name = $puppet::server::package_name,
 ) inherits puppet::params {
 
   validate_string($ensure, $package_name)
 
-  package { 'puppet':
+  package { 'puppetserver':
     ensure  => $ensure,
     name    => $package_name,
   }

@@ -1,17 +1,16 @@
-#
 # This file is managed by puppet class <%= @name %>
-# Puppet service configuration
-#
-[main]
-<% @main_options_hash.sort.each do |option,value| %><%= option %>='<%= value%>'
-<% end %>
 
-[agent]
-<% @agent_options_hash.sort.each do |option,value| %><%= option %>='<%= value%>'
-<% end %>
-
-[master]
-<% @master_options_hash.sort.each do |option,value| %><%= option %>='<%= value%>'
-<% end %>
+<% @config_options.sort.map do |k,v| -%>
+<%   if v.is_a?(Hash) -%>
+[<%=   k %>]
+<%     v.sort.map do |ki, vi| -%>
+<%       if vi.is_a?(Array) -%>
+<%=        ki %> = '<% vi.each do |vii| -%><%= vii %>:<% end -%>'
+<%       elsif vi != :undef -%>
+<%=        ki %> = <%= vi %>
+<%       end -%>
+<%     end -%>
+<%   end %>
+<% end -%>
 
 # END
