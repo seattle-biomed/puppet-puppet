@@ -19,7 +19,7 @@ class puppet::server (
   $package_ensure     = 'installed',
   $service_enable     = true,
   $service_ensure     = 'running',
-  $config_options     = {},
+  $config_options     = {'environmentpath' => '$confdir/environments',},
   $sysconfig_options  = {},
 ) {
 
